@@ -37,6 +37,7 @@ namespace DK
 
 		static void printBoard(const std::array<char, 9>& board);
 		void placeMove();
+		void aiPlaceMove();
 
 		static bool isInvalidMove(const std::array<char, 9>& board, unsigned int idx);
 		static char togglePlayer(char player);
@@ -55,6 +56,11 @@ namespace DK
 		char m_Player = 'X';
 
 		bool m_FirstRun = true;
+		bool m_AIExists = true;
+		char m_PreviousFirstPlayer = 'O';
+		unsigned short m_NumOfGamesPlayed = 0;
+		unsigned short m_NumOfGamesWon = 0;
+		unsigned short m_NumOfGamesDrawn = 0;
 	private:
 
 		static const std::array<std::array<char, 3>, 8> WIN_POSITIONS;

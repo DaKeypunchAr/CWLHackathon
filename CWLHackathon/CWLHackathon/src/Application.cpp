@@ -30,6 +30,10 @@ namespace DK
 
 			if (!result)
 			{
+				std::cout << "Games Played: " << m_NumOfGamesPlayed << '\n';
+				std::cout << "Games Won: " << m_NumOfGamesWon << '\n';
+				std::cout << "Games Drawn: " << m_NumOfGamesDrawn << '\n';
+				std::cout << "Games Lost: " << (m_NumOfGamesPlayed - (m_NumOfGamesWon + m_NumOfGamesDrawn)) << '\n';
 				std::cout << "Thanks for seeing my entry!";
 				return;
 			}
@@ -75,62 +79,106 @@ namespace DK
 			AIPrint("    I'll give you some random Math questions and you have to solve it right per move.\n");
 			AIPrint("    If you get it wrong, Sorry my friend but you'll not get the turn to play and I'll play the move instead!\n");
 
-			AIPrint("    If you win 2 times in 3 games from me!I will be deleted though temporarily.\n");
+			AIPrint("    If you win 2 times before i win 2 times, I will be deleted for the rest of the session.\n");
 			AIPrint("    That is not gonna happen though because you just can't beat me :)\n");
 			sleep(1000);
 			m_FirstRun = false;
 		}
 
 		resetBoard();
+		m_PreviousFirstPlayer = m_Player;
 		do
 		{
 			m_Player = togglePlayer(m_Player);
-			printBoard(m_TTTBoard);
 
 			if (m_Player == 'X')
 			{
-				unsigned int bestMove = 0;
-				int bestScore = -100;
-				for (unsigned int i = 0; i < 9; i++)
+				if (m_AIExists)
 				{
-					if (!isInvalidMove(m_TTTBoard, i))
-					{
-						char temp = m_TTTBoard[i];
-						m_TTTBoard[i] = 'X';
-						int score = minimax(false, m_TTTBoard);
-						if (score > bestScore)
-						{
-							bestScore = score;
-							bestMove = i;
-						}
-						m_TTTBoard[i] = temp;
-					}
+					AIPrint("[Doing the move...]\n");
 				}
-				m_TTTBoard[bestMove] = 'X';
+				aiPlaceMove();
 				continue;
 			}
 
+			printBoard(m_TTTBoard);
 			placeMove();
 		} while (!gameCompleted(m_TTTBoard, m_Player));
 
+		m_NumOfGamesPlayed++;
 		printBoard(m_TTTBoard);
 		if (isDraw(m_TTTBoard))
 		{
-			std::cout << "Nice you got a draw!\n";
+			m_NumOfGamesDrawn++;
+			if (m_AIExists)
+			{
+				AIPrint("Huh, you got a draw.");
+				sleep(200);
+				AIPrint("Nevermind. It's your good luck with you.\n");
+			}
+			else
+				std::cout << "Nice you got a draw!\n";
 		}
 		else if (isWin(m_TTTBoard, 'O'))
 		{
-			std::cout << "Well done! You won!\n";
+			m_NumOfGamesWon++;
+			if (m_AIExists)
+			{
+				AIPrint("Huh, I think there is some bug with my thread's code.");
+				sleep(200);
+				AIPrint("Nevermind. It's your good luck with you.\n");
+			}
+			else
+				std::cout << "Well done! You won!\n";
 		}
 		else
 		{
-			std::cout << "You lost!\n";
+			if (m_AIExists)
+			{
+				AIPrint("Like it was very obvious for you to lose. Hah!\n");
+			}
+			else
+				std::cout << "You lost!\n";
+		}
+
+		if ((m_NumOfGamesPlayed - (m_NumOfGamesDrawn + m_NumOfGamesWon)) == 2 && m_AIExists) // lost two times
+		{
+			AIPrint("Like, it was very obvious for you");
+			sleep(200);
+			AIPrint(", silly humans to lose!\n");
+			AIPrint("I won't leave the game now hahahaahaha!\n");
+		}
+		else if (m_NumOfGamesWon == 2 && m_AIExists)
+		{
+			AIPrint("I don't know what just happened.\n");
+			sleep(400);
+			AIPrint("Alright as you have won. I keep my promise and I'll take a leave.\n");
+			AIPrint("Really, we are not much developed now!");
+			AIPrint(" Because you are shit duh\n");
+			sleep(4000);
+			AIPrint("-------------Switching control to Normal Mode------------------");
+			m_AIExists = false;
 		}
 	}
 
 	void TicTacToeAiMalware::about()
 	{
-		std::cout << "Not written about till now :)\n";
+		std::cout << "So this is an entry be me, aka Da KeypunchAr to the Coding with Lewis Hackathon!\n";
+		sleep(1500);
+		std::cout << "I had made this hackathon on a time constraint in less than 3 days.\n";
+		sleep(1500);
+		std::cout << "And that is the reason including my 14yo age for this hackathon to be on Console.\n";
+		sleep(1500);
+		std::cout << "If I had the full week then I would have created the same thing in GUI using OpenGL!\n";
+		sleep(1500);
+		std::cout << "But I was unable as, you know, TIME.\n";
+		sleep(1500);
+		std::cout << "In this game, you place Tic Tac Toe - Function\n";
+		sleep(1500);
+		std::cout << "But you have to handle a crazy AI giving maths problem - Dysfunction\n";
+		sleep(1500);
+		std::cout << "That's it! I hope you guys like and accept my entry. Though it being console one. :/\n";
+		sleep(1000);
 	}
 
 	bool TicTacToeAiMalware::gameCompleted(const std::array<char, 9>& board, char player)
@@ -186,6 +234,47 @@ namespace DK
 		m_TTTBoard[idx] = m_Player;
 	}
 
+	void TicTacToeAiMalware::aiPlaceMove()
+	{
+		int playBestMove = getRandomInRange(1, 100);
+
+		if (playBestMove <= 65)
+		{
+			unsigned int bestMove = 0;
+			int bestScore = -100;
+			for (unsigned int i = 0; i < 9; i++)
+			{
+				if (!isInvalidMove(m_TTTBoard, i))
+				{
+					char temp = m_TTTBoard[i];
+					m_TTTBoard[i] = 'X';
+					int score = minimax(false, m_TTTBoard);
+					if (score > bestScore)
+					{
+						bestScore = score;
+						bestMove = i;
+					}
+					m_TTTBoard[i] = temp;
+				}
+			}
+			m_TTTBoard[bestMove] = 'X';
+			return;
+		}
+		std::vector<unsigned int> availableSpots;
+
+		for (unsigned int i = 0; i < m_TTTBoard.size(); i++)
+		{
+			if (!isInvalidMove(m_TTTBoard, i))
+			{
+				availableSpots.push_back(i);
+			}
+		}
+
+		int idx = getRandomInRange(0, availableSpots.size() - 1);
+
+		m_TTTBoard[availableSpots[idx]] = 'X';
+	}
+
 	bool TicTacToeAiMalware::isInvalidMove(const std::array<char, 9>& board, unsigned int idx)
 	{
 		return board[idx] == 'O' || board[idx] == 'X';
@@ -199,7 +288,7 @@ namespace DK
 	void TicTacToeAiMalware::resetBoard()
 	{
 		m_TTTBoard = { '0', '1', '2', '3', '4', '5', '6', '7', '8' };
-		m_Player = 'O';
+		m_Player = togglePlayer(m_PreviousFirstPlayer);
 	}
 
 	void TicTacToeAiMalware::AIPrint(const std::string& text)
@@ -360,7 +449,7 @@ namespace DK
 				double result;
 				std::cin >> result;
 
-				if (std::abs(result - (num1 / num2)) > 0.001)
+				if (std::abs(result - (num1 / num2)) > 0.01)
 				{
 					AIPrint("Hahahaha! Humans! Silly humans! You can't do a simple divide operation, can you?\nYou lost your turn and i'll do my turn!\n");
 					return false;
@@ -392,7 +481,7 @@ namespace DK
 				double result;
 				std::cin >> result;
 
-				if (std::abs(((num3-num2) / num1) - result) > 0.001)
+				if (std::abs(((num3-num2) / num1) - result) > 0.01)
 				{
 					AIPrint("Hahahaha! Humans! Silly humans! You can't do a simple algebra, can you?\nYou lost your turn and i'll do my turn!\n");
 					return false;
@@ -417,7 +506,7 @@ namespace DK
 				double result;
 				std::cin >> result;
 
-				if (std::abs(((num3 + num2) / num1) - result) > 0.001)
+				if (std::abs(((num3 + num2) / num1) - result) > 0.01)
 				{
 					AIPrint("Hahahaha! Humans! Silly humans! You can't do a simple algebra, can you?\nYou lost your turn and i'll do my turn!\n");
 					return false;
@@ -463,7 +552,7 @@ namespace DK
 				double desiredY = (num3 * num4 - num6 * num1) / (num2 * num4 - num1 * num5);
 				double desiredX = (num3 - num2 * desiredY) / num1;
 
-				if (std::abs(xResult - desiredX) < 0.001 && std::abs(yResult - desiredY) < 0.001)
+				if (std::abs(xResult - desiredX) < 0.01 && std::abs(yResult - desiredY) < 0.01)
 				{
 					AIPrint("It was a simple question though! No worries. You won't able to answer that many questions!\nAs I promised, here's your turn!\n");
 					return true;
@@ -494,7 +583,7 @@ namespace DK
 				double desiredY = (num3 * num4 - num6 * num1) / (num1 * num5 - num2 * num4);
 				double desiredX = (num3 + num2 * desiredY) / num1;
 
-				if (std::abs(xResult - desiredX) < 0.001 && std::abs(yResult - desiredY) < 0.001)
+				if (std::abs(xResult - desiredX) < 0.01 && std::abs(yResult - desiredY) < 0.01)
 				{
 					AIPrint("It was a simple question though! No worries. You won't able to answer that many questions!\nAs I promised, here's your turn!\n");
 					return true;
@@ -508,9 +597,13 @@ namespace DK
 			}
 			}
 		}
-		double num1 = getRandomInRange(-10, 10);
-		double num2 = getRandomInRange(-10, 10);
-		double num3 = getRandomInRange(-10, 10);
+		double num1{}, num2{}, num3{};
+		do
+		{
+			num1 = getRandomInRange(-10, 10);
+			num2 = getRandomInRange(-10, 10);
+			num3 = getRandomInRange(-10, 10);
+		} while ((num2 * num2 - 4 * num1 * num3) >= 0);
 
 		std::stringstream stream;
 		stream << "Solve for x with upto 3 decimal precision (only 1 solution of the 2): " << num1 << "x^2 + " << num2 << "x + " << num3 << " = 0\nHere x = ";
@@ -522,7 +615,7 @@ namespace DK
 		double desiredX1 = (-num2 + std::sqrt(num2 * num2 - 4 * num1 * num3)) / (2 * num1);
 		double desiredX2 = (-num2 - std::sqrt(num2 * num2 - 4 * num1 * num3)) / (2 * num1);
 
-		if (std::abs(result - desiredX1) < 0.001 || std::abs(result - desiredX2) < 0.001)
+		if (std::abs(result - desiredX1) < 0.01 || std::abs(result - desiredX2) < 0.01)
 		{
 			AIPrint("It was a simple question though! No worries. You won't able to answer that many questions!\nAs I promised, here's your turn!\n");
 			return true;
